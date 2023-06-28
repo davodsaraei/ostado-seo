@@ -1,0 +1,102 @@
+version: '3.7'
+services:
+  # We need to run the FPM container for our application
+  app.fpm:
+    image: app/fpm
+    build:
+      context: .
+      target: fpm_server
+    container_name: app.fpm
+    entrypoint: "/var/www/html/docker/entrypoint.sh"
+    # We can override any env values here.
+    # By default the .env in the project root will be loaded as the environment for all containers
+    environment:
+      APP_DEBUG: "true"
+    # Mount the codebase, so any code changes we make will be propagated to the running application
+    volumes:
+      # Here we mount in our codebase so any changes are immediately reflected into the container
+      - '.:/var/www/html'
+    networks:
+      - app-network
+    depends_on:
+      - app.mysql
+      - app.mongodb
+
+  # Run the web server container for static content, and proxying to our FPM container
+  app.web:
+    image: app/web
+    build:
+      context: .
+      target: web_server
+    container_name: app.web
+    # Expose our application port (80) through a port on our local machine (8080)
+    ports:
+      - '8080:80'
+    environment:
+      # We need to pass in the new FPM hst as the name of the fpm container on port 9000
+      FPM_HOST: "app.fpm:9000"
+    # Mount the public directory into the container so we can serve any static files directly when they change
+    volumes:
+      # Here we mount in our codebase so any changes are immediately reflected into the container
+      - './public:/var/www/html/public'
+    networks:
+      - app-network
+    depends_on:
+      - app.mysql
+      - app.mongodb
+      - app.fpm
+
+  # Run the core Scheduler
+  # app.cron:
+  #   image: app/cron
+  #   build:
+  #     context: .
+  #     target: cron
+  #   container_name: app.cron
+  #   # Here we mount in our codebase so any changes are immediately reflected into the container
+  #   volumes:
+  #     # Here we mount in our codebase so any changes are immediately reflected into the container
+  #     - '.:/var/www/html'
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     - app.mysql
+  #     - app.mongodb
+
+  app.mysql:
+    image: mysql:latest
+    container_name: 'app.mysql'
+    environment:
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    volumes:
+      - 'app-mysql:/var/lib/mysql'
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
+      retries: 3
+      timeout: 5s
+
+  app.mongodb:
+    image: mongo:latest
+    container_name: 'app.mongodb'
+    environment:
+      MONGO_INITDB_DATABASE: '${MONGO_DB_DATABASE}'
+      MONGO_INITDB_ROOT_USERNAME: '${MONGO_DB_USERNAME}'
+      MONGO_INITDB_ROOT_PASSWORD: '${MONGO_DB_PASSWORD}'
+    volumes:
+      - 'app-mongodb:/data/db'
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: app-network
+
+# At the end of the file
+volumes:
+  app-mysql:
+  app-mongodb:
