@@ -11,11 +11,9 @@ storage/framework/sessions/*
 storage/framework/views/*
 storage/logs/*
 
-# ignore in dev mode
-#/vendor
+/vendor
 
-# ignore in dev mode
-#**/*node_modules
+**/*node_modules
 
 **.git
 .idea
