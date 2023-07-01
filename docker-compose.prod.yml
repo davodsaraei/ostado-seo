@@ -22,7 +22,6 @@ services:
       - app-network
     depends_on:
       - app.mysql
-      - app.mongodb
 
   # Run the web server container for static content, and proxying to our FPM container
   app.web:
@@ -45,7 +44,6 @@ services:
       - app-network
     depends_on:
       - app.mysql
-      - app.mongodb
       - app.fpm
 
   # Run the core Scheduler
@@ -63,7 +61,6 @@ services:
   #     - app-network
   #   depends_on:
   #     - app.mysql
-  #     - app.mongodb
 
   app.mysql:
     image: mysql:latest
@@ -82,18 +79,6 @@ services:
       retries: 3
       timeout: 5s
 
-  app.mongodb:
-    image: mongo:latest
-    container_name: 'app.mongodb'
-    environment:
-      MONGO_INITDB_DATABASE: '${MONGO_DB_DATABASE}'
-      MONGO_INITDB_ROOT_USERNAME: '${MONGO_DB_USERNAME}'
-      MONGO_INITDB_ROOT_PASSWORD: '${MONGO_DB_PASSWORD}'
-    volumes:
-      - 'app-mongodb:/data/db'
-    networks:
-      - app-network
-
 networks:
   app-network:
     name: app-network
@@ -101,4 +86,3 @@ networks:
 # At the end of the file
 volumes:
   app-mysql:
-  app-mongodb:
