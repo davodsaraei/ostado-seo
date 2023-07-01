@@ -19,8 +19,15 @@ class querySuggestion
         throw_if(! ($this->baseUrl && $this->client), InvalidConfigException::class);
     }
 
-    public function fetch(string $q)
+    public function fetch(string $q = null)
     {
+        if (empty($q) && strlen(trim($q)) === 0) {
+            return (object) [
+                'status' => 200,
+                'items' => []
+            ];
+        }
+
         $query = [
             'client' => $this->client,
             'q' => $q,
