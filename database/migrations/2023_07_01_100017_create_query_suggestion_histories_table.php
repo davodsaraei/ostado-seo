@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('custom_search_histories', function (Blueprint $table) {
+        Schema::create('query_suggestion_histories', function (Blueprint $table) {
             $table->id();
 
-            $table->text('searched_item');
+            $table->text('key');
             $table->text('items');
 
             $table->unsignedBigInteger('user_id');
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('custom_search_histories');
+        Schema::dropIfExists('query_suggestion_histories');
     }
 };

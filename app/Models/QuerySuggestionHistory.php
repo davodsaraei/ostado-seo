@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Models\Traits\IsOwner;
 use Illuminate\Database\Eloquent\Model;
 
-class CustomSearchHistory extends Model
+class QuerySuggestionHistory extends Model
 {
     use IsOwner;
 
     protected $fillable = [
-        'searched_item',
+        'key',
         'items',
+        'user_id',
     ];
 
     protected $casts = [
